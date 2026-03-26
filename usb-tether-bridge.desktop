@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=2.0
+Name=USB Tether Bridge (v2)
+Comment=Route PC Internet via USB to Android (Auto-Routing)
+Exec=sh -c "pkexec /home/alpsa/Desktop/reverse_tether_v2.sh start"
+Icon=network-transmit-receive
+Terminal=false
+Type=Application
+Categories=Network;Utility;
+Actions=Stop;
+
+[Desktop Action Stop]
+Name=Stop Tethering (Clean Rules)
+Exec=sh -c "pkexec /home/alpsa/Desktop/reverse_tether_v2.sh stop"
