@@ -9,13 +9,22 @@
 
 ACTION=${1:-start}
 
-# 💬 Native Linux Desktop Notifications
+# 1. Native Linux Desktop Notifications
 notify() {
     # Run notify-send as the real user if called via sudo
     if [ -n "$SUDO_USER" ]; then
         sudo -u "$SUDO_USER" notify-send "USB Tether Bridge" "$1" --icon=network-transmit-receive -t 4000 2>/dev/null || echo "💬 $1"
     else
         notify-send "USB Tether Bridge" "$1" --icon=network-transmit-receive -t 4000 2>/dev/null || echo "💬 $1"
+    fi
+}
+
+# Wrap ADB to NEVER start the daemon as root
+adb_wrapper() {
+    if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
+        sudo -u "$SUDO_USER" adb "$@"
+    else
+        adb "$@"
     fi
 }
 
@@ -44,8 +53,8 @@ if [ "$ACTION" == "stop" ]; then
     echo "🛑 Stopping tethering and cleaning up..."
     
     # Gracefully command the paired Android phone to destroy the VPN connection
-    if [ -f "$GNIREHTET_DIR/gnirehtet" ] && command -v adb >/dev/null 2>&1; then
-        DEVICES=($(adb devices | grep -E "\bdevice$" | awk '{print $1}'))
+    if [ -f "$GNIREHTET_DIR/gnirehtet" ] && command -v adb_wrapper >/dev/null 2>&1; then
+        DEVICES=($(adb_wrapper devices | grep -E "\bdevice$" | awk '{print $1}'))
         for DEV in "${DEVICES[@]}"; do
             sudo -u "${SUDO_USER:-$USER}" "$GNIREHTET_DIR/gnirehtet" stop "$DEV" >/dev/null 2>&1
         done
@@ -66,15 +75,20 @@ fi
 
 notify "🔄 Initializing USB Tethering Engine..."
 
-# 2. auto-ADB Trigger: Force RNDIS mode without touching the phone screen
-if command -v adb >/dev/null 2>&1; then
-    DEVICES=($(adb devices | grep -E "\bdevice$" | awk '{print $1}'))
+# 2. auto-ADB Trigger: Force RNDIS mode without touching the phone screen (Rooted Only)
+if command -v adb_wrapper >/dev/null 2>&1; then
+    DEVICES=($(adb_wrapper devices | grep -E "\bdevice$" | awk '{print $1}'))
     if [ ${#DEVICES[@]} -gt 0 ]; then
         for DEV in "${DEVICES[@]}"; do
-            echo "📱 Forcing RNDIS mode via ADB on $DEV..."
-            adb -s "$DEV" shell svc usb setFunctions rndis
+            # Only force RNDIS if the device has root capabilities to avoid severing ADB for Gnirehtet
+            if adb_wrapper -s "$DEV" shell su -c id 2>/dev/null | grep -q "uid=0"; then
+                echo "📱 Forcing RNDIS mode via ADB on $DEV..."
+                adb_wrapper -s "$DEV" shell svc usb setFunctions rndis
+            else
+                echo "📱 Device $DEV is unrooted. Skipping RNDIS force to preserve ADB for Gnirehtet."
+            fi
         done
-        sleep 3 # Wait for the Linux kernel to recognize the new USB network interface
+        sleep 3 # Wait for the Linux kernel to recognize possible new USB network interfaces
     fi
 else
     notify "❌ ADB is not installed. Zero-touch automation will not work."
@@ -104,12 +118,12 @@ for ((i=0; i<${#DEVICES[@]}; i++)); do
     echo "🌐 Configuring network for Android Device: $DEV..."
     
     # Check if native IP routing is allowed by the Android OS
-    adb -s "$DEV" shell "ip addr flush dev rndis0" 2>/dev/null
-    adb -s "$DEV" shell "ip addr add 192.168.${SUBNET}.2/24 dev rndis0" 2>/dev/null
-    adb -s "$DEV" shell "ip link set rndis0 up" 2>/dev/null
+    adb_wrapper -s "$DEV" shell "ip addr flush dev rndis0" 2>/dev/null
+    adb_wrapper -s "$DEV" shell "ip addr add 192.168.${SUBNET}.2/24 dev rndis0" 2>/dev/null
+    adb_wrapper -s "$DEV" shell "ip link set rndis0 up" 2>/dev/null
     
     # Attempt to add the default route and capture errors
-    ROUTE_OUT=$(adb -s "$DEV" shell "ip route add default via 192.168.${SUBNET}.1 dev rndis0" 2>&1)
+    ROUTE_OUT=$(adb_wrapper -s "$DEV" shell "ip route add default via 192.168.${SUBNET}.1 dev rndis0" 2>&1)
     
     if echo "$ROUTE_OUT" | grep -qi "Permission denied"; then
         echo "⚠️ Knox/Root restriction detected on $DEV. Booting Gnirehtet fallback..."
@@ -125,8 +139,12 @@ for ((i=0; i<${#DEVICES[@]}; i++)); do
             rm -rf /tmp/gnh.zip /tmp/gnh_ext
         fi
         
-        # Launch gnirehtet in background for this device
-        sudo -u "${SUDO_USER:-$USER}" "$GNIREHTET_DIR/gnirehtet" run "$DEV" &
+        # Launch gnirehtet in true background isolation for this device
+        sudo -u "${SUDO_USER:-$USER}" nohup "$GNIREHTET_DIR/gnirehtet" run "$DEV" "$DNS_1" >/dev/null 2>&1 &
+        
+        # Inject DNS into system properties to force stubborn apps (DownloadManager, Play Store) to resolve through the VPN
+        adb_wrapper -s "$DEV" shell "setprop net.dns1 $DNS_1" 2>/dev/null
+        adb_wrapper -s "$DEV" shell "setprop net.dns2 $DNS_2" 2>/dev/null
         
         notify "🚀 Gnirehtet VPN Active! Tap 'OK' on your phone to connect."
     else
@@ -141,8 +159,8 @@ for ((i=0; i<${#DEVICES[@]}; i++)); do
             sudo ip link set "$IFACE" up
             
             # DNS configuration
-            adb -s "$DEV" shell "setprop net.dns1 $DNS_1" 2>/dev/null
-            adb -s "$DEV" shell "ndc resolver setnetdns rndis0 \"\" $DNS_1 $DNS_2" 2>/dev/null
+            adb_wrapper -s "$DEV" shell "setprop net.dns1 $DNS_1" 2>/dev/null
+            adb_wrapper -s "$DEV" shell "ndc resolver setnetdns rndis0 \"\" $DNS_1 $DNS_2" 2>/dev/null
             
             notify "🎉 Native Tethering Bridge Active for $DEV!"
         fi

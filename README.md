@@ -1,63 +1,55 @@
-# USB Tether Bridge 3.0 (Linux to Android)
+# USB Tether Bridge 3.0 (Linux ➔ Android)
 
-A competitive, highly-automated, and universal utility that routes a Linux PC's active internet connection (Wi-Fi/Ethernet) directly into any connected Android device via USB (Reverse Tethering).
+A brilliantly simple, plug-and-play tool that shares your Linux PC's internet connection with any Android phone over a USB cable. 
 
-![USB Tether Bridge](https://img.shields.io/badge/Platform-Linux-blue) ![License](https://img.shields.io/badge/License-MIT-green) ![Status](https://img.shields.io/badge/Status-V3.0_Stable-success)
+![Linux](https://img.shields.io/badge/Platform-Linux-blue) ![License](https://img.shields.io/badge/License-MIT-green) ![Status](https://img.shields.io/badge/Status-V3.0_Stable-success)
 
-## 🌟 What makes V3.0 the best?
-Standard `iptables` tethering scripts fail on modern, unrooted, or Knox-secured Android devices. **USB Tether Bridge 3.0** completely solves this by introducing a **Smart Detection Engine** alongside true Linux Desktop integration.
+## ⚡ How to get started
 
-### 🔥 V3.0 Features:
-1. **Automatic Gnirehtet Smart-Fallback:** The script intelligently detects if your phone blocks native IP routing commands. If it does (e.g., Unrooted Samsung Galaxy), the script silently downloads Genymobile's `gnirehtet` Rust engine and securely relays your internet via a localized VPN tunnel without needing Root!
-2. **True Plug-and-Play (Udev Integration):** Forget clicking buttons. Thanks to the integrated `udev` rules, the moment you plug your phone into the PC, the Linux kernel automatically triggers the background service and routes the internet instantly.
-3. **Python System Tray Applet:** Includes a sleek, persistent desktop GUI written in Python (`pystray`). Control the bridge, track status, and open settings straight from your system tray.
-4. **Custom DNS Overrides:** Bypass your ISP's DNS by defining your own custom DNS resolvers (e.g., Cloudflare `1.1.1.1` or Google `8.8.8.8`) securely in the `~/.config/usb-tether-bridge/config.env` file.
-5. **Zero-Touch RNDIS & Automated ADB:** Forces the phone into USB Tethering mode without touching the screen.
-
----
-
-## 🚀 Installation
-
-We have included a powerful setup module to handle all dependencies automatically.
-
-1. **Clone the repository:**
+1. **Download the tool:**
    ```bash
    git clone https://github.com/MRnkosikorma/usb-tether-bridge.git
    cd usb-tether-bridge
    ```
 
-2. **Run the Automated Installer:**
+2. **Run the One-Click Installer:**
    ```bash
    chmod +x install.sh
    ./install.sh
    ```
-   **What the installer does:**
-   - Creates a dedicated Python Virtual Environment for the GUI.
-   - Installs the `systemd` background service (`usb-tether-bridge.service`).
-   - Registers the `udev` rule (`99-usb-tether.rules`) for pure plug-and-play functionality.
-   - Sets the Python app to launch automatically on Desktop login.
+*(That's it! The installer permanently sets up all background services, Python environments, and Auto-Detect rules for you).*
 
 ---
 
-## 🔧 Usage Details
+## 📱 How to actually use it
 
-### Plug-and-Play mode
-Simply plug an Android phone into your computer with USB Debugging enabled. The PC will detect the phone and instantly beam internet into it. A notification will appear on your desktop when the tether is active.
+There are two ways to use your new tether bridge:
 
-*(If your phone is unrooted and triggers the Gnirehtet fallback, a prompt will appear on your phone saying "Connection request." Tap **OK**.)*
+### Method 1: The Magic "Plug-and-Play" (Recommended)
+1. Turn on **USB Debugging** in your Android's Developer Options.
+2. **Plug your phone into your PC.**
+3. The PC will instantly detect the phone, start the bridging service in the background, and a VPN prompt will appear on your phone screen.
+4. Tap **OK** on your phone. *You are now connected!*
 
-### Manual GUI Mode
-If you prefer manual control, use the **USB Tether Bridge** system tray icon!
-- **Start Bridge**: Manually trigger routing.
-- **Stop Bridge**: Kills all gnirehtet relays, flushes `iptables` NAT routing, and gracefully ends the session.
-- **Settings (DNS)**: Opens your local config file to change DNS resolvers.
+### Method 2: The Graphical Menu (Manual Control)
+If you prefer buttons, the installer added a **USB Tether Bridge** icon to your Linux system tray (near your clock/Wi-Fi). 
+Right-click it to:
+- **Start Bridge**
+- **Stop Bridge** (Cleanly kills the connection and Android VPN)
+- **Settings** (Change your custom DNS)
 
 ---
 
-## 👨‍💻 Credits & License
+## 💡 Troubleshooting: "Stubborn Apps won't download!"
+Because strict unrooted devices (like Samsung Knox) use a background VPN relay instead of a native network, some apps (like the **Google Play Store** or **WhatsApp Backups**) might say *"Waiting for Wi-Fi"* and refuse to download large files.
 
-**Creator:** Nkosilathi Koma
+**The Fix is extremely simple:**
+1. Turn on your phone's **Wi-Fi** or **Mobile Data** (It does not need to actually have internet).
+2. Because the antenna is "On", the stubborn apps are tricked into thinking they are on a normal connection.
+3. The background USB Tether Bridge intercepts 100% of the traffic before it ever hits the antenna, routing it flawlessly back through your USB cable for free!
 
-This project leverages the incredible [Genymobile/gnirehtet](https://github.com/Genymobile/gnirehtet) engine to support completely unrooted Android workflows.
+This guarantees that every single app on your phone can utilize the connection.
 
-Released open-source under the **MIT License**.
+---
+
+**Credits:** Created by Nkosilathi Koma. Powered by the [Genymobile/gnirehtet](https://github.com/Genymobile/gnirehtet) relay engine for unrooted Android support.
