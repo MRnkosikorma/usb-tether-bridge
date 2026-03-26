@@ -3,7 +3,8 @@
 # =========================================================================
 # Android USB Reverse Tethering Script V2.0 (Linux)
 # Features: ADB Auto-Trigger, Notifications, DNS Injection, Multi-Device
-# Usage: ./reverse_tether_v2.sh [start|stop]
+# Usage: ./usb-tether-bridge.sh [start|stop]
+# Author: Nkosilathi Koma
 # =========================================================================
 
 ACTION=${1:-start}

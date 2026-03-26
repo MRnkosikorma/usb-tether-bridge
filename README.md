@@ -52,3 +52,12 @@ A complete, automated shell utility that routes a Linux PC's active internet con
 - `iptables` & `iproute2` (Standard on almost all distros)
 - `adb` (Optional, but required for the "Zero-Touch" automation feature)
 - `polkit` / `pkexec` (For the graphical password prompt)
+
+---
+
+## 👨‍💻 Credits & License
+
+**Creator:** Nkosilathi Koma
+
+This project is open-source and released under the **MIT License**. 
+Anyone is free to use, copy, modify, merge, publish, and distribute this utility. When sharing or modifying, please maintain attribution to the original creator (Nkosilathi Koma).
