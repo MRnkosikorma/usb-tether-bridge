@@ -1,57 +1,56 @@
-# USB Tether Bridge (Linux to Android)
+# USB Tether Bridge 3.0 (Linux to Android)
 
-A complete, automated shell utility that routes a Linux PC's active internet connection (Wi-Fi/Ethernet) to any connected Android device via USB (Reverse Tethering).
+A competitive, highly-automated, and universal utility that routes a Linux PC's active internet connection (Wi-Fi/Ethernet) directly into any connected Android device via USB (Reverse Tethering).
 
-![USB Tether Bridge](https://img.shields.io/badge/Platform-Linux-blue) ![License](https://img.shields.io/badge/License-MIT-green) ![Shell](https://img.shields.io/badge/Language-Bash-orange)
+![USB Tether Bridge](https://img.shields.io/badge/Platform-Linux-blue) ![License](https://img.shields.io/badge/License-MIT-green) ![Status](https://img.shields.io/badge/Status-V3.0_Stable-success)
 
-## Features
-- **Zero-Touch Android Setup:** Uses `adb` to automatically force the connected phone into RNDIS/USB-Tethering mode without ever having to touch the phone's screen.
-- **Native Desktop Integration:** Comes with a ready-to-use `.desktop` graphical shortcut that uses `pkexec` for seamless GUI password entry (no messy terminals).
-- **DNS Injection:** Actively commands the Android device to route DNS queries to Google DNS (`8.8.8.8`) via `ndc`, preventing "Connected, no internet" errors on strict apps.
-- **Multi-Device Support:** Loops through and bridges every connected USB device simultaneously.
-- **Clean "Stop" Routine:** Right-click the desktop shortcut to select **"Stop Tethering,"** which safely flushes `iptables` routing, removes NAT masquerading, and disables kernel IPv4 forwarding.
-- **Graphical Notifications:** Replaces terminal spam with sleek, native Linux desktop notifications via `notify-send`.
+## 🌟 What makes V3.0 the best?
+Standard `iptables` tethering scripts fail on modern, unrooted, or Knox-secured Android devices. **USB Tether Bridge 3.0** completely solves this by introducing a **Smart Detection Engine** alongside true Linux Desktop integration.
+
+### 🔥 V3.0 Features:
+1. **Automatic Gnirehtet Smart-Fallback:** The script intelligently detects if your phone blocks native IP routing commands. If it does (e.g., Unrooted Samsung Galaxy), the script silently downloads Genymobile's `gnirehtet` Rust engine and securely relays your internet via a localized VPN tunnel without needing Root!
+2. **True Plug-and-Play (Udev Integration):** Forget clicking buttons. Thanks to the integrated `udev` rules, the moment you plug your phone into the PC, the Linux kernel automatically triggers the background service and routes the internet instantly.
+3. **Python System Tray Applet:** Includes a sleek, persistent desktop GUI written in Python (`pystray`). Control the bridge, track status, and open settings straight from your system tray.
+4. **Custom DNS Overrides:** Bypass your ISP's DNS by defining your own custom DNS resolvers (e.g., Cloudflare `1.1.1.1` or Google `8.8.8.8`) securely in the `~/.config/usb-tether-bridge/config.env` file.
+5. **Zero-Touch RNDIS & Automated ADB:** Forces the phone into USB Tethering mode without touching the screen.
 
 ---
 
-## 🚀 Installation & Usage
+## 🚀 Installation
+
+We have included a powerful setup module to handle all dependencies automatically.
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/YOUR_GITHUB_USERNAME/usb-tether-bridge.git
+   git clone https://github.com/MRnkosikorma/usb-tether-bridge.git
    cd usb-tether-bridge
    ```
 
-2. **Deploy to your Desktop:**
-   Move the script and the branded shortcut to your Desktop, make them executable, and trust the launcher:
+2. **Run the Automated Installer:**
    ```bash
-   cp usb-tether-bridge.sh ~/Desktop/
-   cp usb-tether-bridge.desktop ~/Desktop/
-   chmod +x ~/Desktop/usb-tether-bridge.sh ~/Desktop/usb-tether-bridge.desktop
-   gio set ~/Desktop/usb-tether-bridge.desktop metadata::trusted yes 2>/dev/null
+   chmod +x install.sh
+   ./install.sh
    ```
-
-3. **Run it:**
-   Simply double-click the **USB Tether Bridge** icon on your Desktop. It will prompt for your administrator password natively, enable routing, and notify you when the bridge is active.
-
-4. **Stop it:**
-   Right-click the desktop icon and click **"Stop Tethering (Clean Rules)"**.
+   **What the installer does:**
+   - Creates a dedicated Python Virtual Environment for the GUI.
+   - Installs the `systemd` background service (`usb-tether-bridge.service`).
+   - Registers the `udev` rule (`99-usb-tether.rules`) for pure plug-and-play functionality.
+   - Sets the Python app to launch automatically on Desktop login.
 
 ---
 
-## 🔧 Under the Hood (How it Works)
-1. Detects the host PC's outbound interface (`ip route get 8.8.8.8`).
-2. Polls `adb devices` to trigger `svc usb setFunctions rndis` on the phone.
-3. Detects the newly mounted USB Ethernet interface (`usb0`, `rndis0`, or `enp*`).
-4. Flips `net.ipv4.ip_forward=1` in the system kernel.
-5. Configures `iptables` rules to `MASQUERADE` and `FORWARD` packets across the bridge.
-6. Assigns `192.168.x.1` gateways iteratively to every connected USB interface.
+## 🔧 Usage Details
 
-## Requirements
-- Any Linux Distribution (Ubuntu/Debian, Fedora, Arch)
-- `iptables` & `iproute2` (Standard on almost all distros)
-- `adb` (Optional, but required for the "Zero-Touch" automation feature)
-- `polkit` / `pkexec` (For the graphical password prompt)
+### Plug-and-Play mode
+Simply plug an Android phone into your computer with USB Debugging enabled. The PC will detect the phone and instantly beam internet into it. A notification will appear on your desktop when the tether is active.
+
+*(If your phone is unrooted and triggers the Gnirehtet fallback, a prompt will appear on your phone saying "Connection request." Tap **OK**.)*
+
+### Manual GUI Mode
+If you prefer manual control, use the **USB Tether Bridge** system tray icon!
+- **Start Bridge**: Manually trigger routing.
+- **Stop Bridge**: Kills all gnirehtet relays, flushes `iptables` NAT routing, and gracefully ends the session.
+- **Settings (DNS)**: Opens your local config file to change DNS resolvers.
 
 ---
 
@@ -59,5 +58,6 @@ A complete, automated shell utility that routes a Linux PC's active internet con
 
 **Creator:** Nkosilathi Koma
 
-This project is open-source and released under the **MIT License**. 
-Anyone is free to use, copy, modify, merge, publish, and distribute this utility. When sharing or modifying, please maintain attribution to the original creator (Nkosilathi Koma).
+This project leverages the incredible [Genymobile/gnirehtet](https://github.com/Genymobile/gnirehtet) engine to support completely unrooted Android workflows.
+
+Released open-source under the **MIT License**.
